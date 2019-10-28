@@ -9,10 +9,10 @@ class mHandler(handler.ContentHandler):
         self.flag = 0
 
     def startDocument(self):
-        print 'Document Start'
+        print('Document Start')
         
     def endDocument(self):
-        print 'Document End'
+        print('Document End')
         
     def startElement(self, name, attrs):
         if name == 'author':
@@ -38,8 +38,8 @@ def parserDblpXml(source,result):
     
 
 if __name__ == '__main__':
-    source = codecs.open('dblp.xml','r','utf-8')
-    result = codecs.open('authors.txt','w','utf-8')
+    source = codecs.open('E:/研二上学习/研二课程/数据挖掘/DBLP/dataset/dblp.xml','r','utf-8')
+    result = codecs.open('E:/研二上学习/研二课程/数据挖掘/DBLP/dataset/authors.txt','w','utf-8')
     parserDblpXml(source,result)
     result.close()
     source.close()
