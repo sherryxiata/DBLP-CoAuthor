@@ -1,3 +1,5 @@
+from config import *
+
 class treeNode:
     def __init__(self, nameValue, numOccur, parentNode):
         self.name = nameValue
@@ -8,7 +10,7 @@ class treeNode:
     def inc(self, numOccur):
         self.count += numOccur
     def disp(self, ind=1):
-        print '  '*ind, self.name, ' ', self.count
+        print('  '*ind, self.name, ' ', self.count)
         for child in self.children.values():
             child.disp(ind+1)
 
@@ -19,7 +21,7 @@ def createTree(dataSet, minSup=1): #create FP-tree from dataset but don't mine
         for item in trans:
             freqDic[item] = freqDic.get(item, 0) + dataSet[trans]
     
-    headerTable = {k:v for (k,v) in freqDic.iteritems() if v >= minSup}
+    headerTable = {k:v for (k,v) in freqDic.items() if v >= minSup}
 
 
     #print 'freqItemSet: ',freqItemSet
@@ -71,7 +73,7 @@ def findPrefixPath(basePat, treeNode): #treeNode comes from header table
     return condPats
 
 def mineTree(inTree, headerTable, minSup, preFix, freqItemList):
-    bigL = [v[0] for v in sorted(headerTable.items(), key=lambda p: p[1])]#(sort header table)
+    bigL = [v[0] for v in sorted(headerTable.items(), key=lambda p: p[1][0])]#(sort header table)
     for basePat in bigL:  #start from bottom of header table
         newFreqSet = preFix.copy()
         newFreqSet.add(basePat)
@@ -99,30 +101,29 @@ def loadSimpDat(inFile):
     return dataSet
 
 
-
 if __name__ == "__main__":
     minSup = 100
-    print "Reading Source File ... Wait..."
-    with open('authors_encoded.txt','r') as f:
+    print("Reading Source File ... Wait...")
+    with open(root_path+'/authors_encoded.txt','r') as f:
         dataSet = loadSimpDat(f)
 
-    print "Constructing FP-tree ... Wait..."
+    print("Constructing FP-tree ... Wait...")
     myFPtree, myHeaderTab = createTree(dataSet, minSup)
     
-    print "Mining frequent items ... Wait..."
+    print("Mining frequent items ... Wait...")
     myFreqList = {}
     mineTree(myFPtree, myHeaderTab, minSup, set([]), myFreqList)
-    print "Totally %d frequent itemsets found ! " %len(myFreqList)
-    print "Constructing authors_index... Wait..."
+    print("Totally %d frequent itemsets found ! " %len(myFreqList))
+    print("Constructing authors_index... Wait...")
 
     maxCoauthors = 0
     for freqAuthors in myFreqList.keys():
         if len(freqAuthors) > maxCoauthors:
             maxCoauthors = len(freqAuthors)
-    print "the max num of coauthors is %d " % (maxCoauthors)
+    print("the max num of coauthors is %d " % (maxCoauthors))
 
     
-    with open('authors_index.txt','r') as authorsIndex:
+    with open(root_path+'/authors_index.txt','r') as authorsIndex:
         i = 0
         authorsDic = {}
         for name in authorsIndex:
@@ -130,10 +131,10 @@ if __name__ == "__main__":
             authorsDic[i] = name
             i = i+1
     
-    print "Writing result into result.txt... Wait..."
+    print("Writing result into result.txt... Wait...")
 
-    with open('result4.txt','w') as result2:
-        with open('result3.txt','w') as result:
+    with open(root_path+'/result4.txt','w') as result2:
+        with open(root_path+'/result3.txt','w') as result:
             result.write("%25s\t%25s\t%15s\t%10s\t%6s\t%6s\t%6s\t%6s\t%6s\t%6s\t%6s\t%6s\n" \
                          %('authorA','authorB','authorC','Sup(A,B,C)','Sup(A)','Sup(B)','Sup(C)',\
                            'Con(A)','Con(B)','Con(C)','MinCon','MaxCon'))
@@ -161,6 +162,7 @@ if __name__ == "__main__":
                     ConC = float(SupAB_C) / float(SupC)
                     MinCon = min([ConA, ConB, ConC])
                     MaxCon = max([ConA, ConB, ConC])
+
                 elif len(itemList) == 2:
                     MinCon = min([ConA, ConB])
                     MaxCon = max([ConA, ConB])                
@@ -174,4 +176,4 @@ if __name__ == "__main__":
                 result2.write("%25s\t%25s\t%15s\t%10.0f\t%6.0f\t%6.0f\t%6.0f\t\%6.4f\t%6.4f\t%6.4f\t%6.4f\t%6.4f\n"\
                               %(A,B,C,SupAB_C,SupA,SupB,SupC,\
                                 ConA,ConB,ConC,MinCon,MaxCon))
-    print "Finished !"
+    print("Finished !")
