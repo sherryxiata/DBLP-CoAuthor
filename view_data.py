@@ -1,6 +1,6 @@
 #count support of each author; visualize
 
-from config import *
+from config1 import *
 import matplotlib.pyplot as plt
 import numpy as np
 

@@ -1,8 +1,16 @@
+# -*- coding: utf-8 -*-
+# @Time    : 2019/10/30 17:56
+# @Author  : wenlei
+
+'''
+从dblp.xml中得到所有文章、书、会议等的作者列表authors.txt
+'''
+
 from config import *
 from xml.sax import handler, make_parser
 
-paper_tag = ('article','inproceedings','proceedings','book',
-                   'incollection','phdthesis','mastersthesis','www')
+#包含作者的标签
+paper_tag = ('article','inproceedings','proceedings','book','incollection','phdthesis','mastersthesis','www')
 
 class mHandler(handler.ContentHandler):
     def __init__(self,result):
@@ -10,10 +18,10 @@ class mHandler(handler.ContentHandler):
         self.flag = 0
 
     def startDocument(self):
-        print('Document Start')
+        print('Document Start...')
 
     def endDocument(self):
-        print('Document End')
+        print('Document End...')
 
     def startElement(self, name, attrs):
         if name == 'author':

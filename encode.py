@@ -1,10 +1,17 @@
+# -*- coding: utf-8 -*-
+# @Time    : 2019/10/30 17:56
+# @Author  : wenlei
+
+'''
+对authors.txt进行编码，生成authors_encoded.txt和authors_index.txt
+'''
+
 from config import *
 
 source = codecs.open(root_path+'/authors.txt','r','utf-8')
 result = codecs.open(root_path+'/authors_encoded.txt','w','utf-8')
 index = codecs.open(root_path+'/authors_index.txt','w','utf-8')
-index_dic = {}
-#index_dic:key->authorName;value=>[id,count]
+index_dic = {}   #{authorName:[id,count],...,}
 name_id = 0
 
 for line in source:

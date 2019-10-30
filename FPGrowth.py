@@ -1,3 +1,11 @@
+# -*- coding: utf-8 -*-
+# @Time    : 2019/10/30 17:56
+# @Author  : wenlei
+
+'''
+用FPGrowth生成关联规则
+'''
+
 from config import *
 
 class treeNode:
@@ -17,7 +25,7 @@ class treeNode:
 def createTree(dataSet, minSup=1): #create FP-tree from dataset but don't mine
     freqDic = {}
     #go over dataSet twice
-    for trans in dataSet:#first pass counts frequency of occurance
+    for trans in dataSet: #first pass counts frequency of occurance
         for item in trans:
             freqDic[item] = freqDic.get(item, 0) + dataSet[trans]
     
@@ -100,29 +108,33 @@ def loadSimpDat(inFile):
             
     return dataSet
 
-
 if __name__ == "__main__":
-    minSup = 100
-    print("Reading Source File ... Wait...")
+
+    minSup = 100 #至少共同出现过100次
+    print("Reading Source File ... ")
     with open(root_path+'/authors_encoded.txt','r') as f:
         dataSet = loadSimpDat(f)
 
-    print("Constructing FP-tree ... Wait...")
+    # 挖掘关联规则
+    tik = time.time()
+    print("Constructing FP-tree ...")
     myFPtree, myHeaderTab = createTree(dataSet, minSup)
-    
-    print("Mining frequent items ... Wait...")
+
+    print("Mining frequent items ... ")
     myFreqList = {}
     mineTree(myFPtree, myHeaderTab, minSup, set([]), myFreqList)
-    print("Totally %d frequent itemsets found ! " %len(myFreqList))
-    print("Constructing authors_index... Wait...")
+    print("Totally %d frequent itemsets found." %len(myFreqList))
+    tok=time.time()
+    print('runtime:',tok-tik)
 
+    #找到最大数目的共同合作者
     maxCoauthors = 0
     for freqAuthors in myFreqList.keys():
         if len(freqAuthors) > maxCoauthors:
             maxCoauthors = len(freqAuthors)
     print("the max num of coauthors is %d " % (maxCoauthors))
 
-    
+    print('Read author index...')
     with open(root_path+'/authors_index.txt','r') as authorsIndex:
         i = 0
         authorsDic = {}
@@ -130,17 +142,16 @@ if __name__ == "__main__":
             name = name.strip()
             authorsDic[i] = name
             i = i+1
-    
-    print("Writing result into result.txt... Wait...")
 
-    with open(root_path+'/result4.txt','w') as result2:
-        with open(root_path+'/result3.txt','w') as result:
-            result.write("%25s\t%25s\t%15s\t%10s\t%6s\t%6s\t%6s\t%6s\t%6s\t%6s\t%6s\t%6s\n" \
+    print("Writing result into result.txt...")
+    with open(result_path+'/FPGrowth_result2_con.txt','w') as result2:
+        with open(result_path+'/FPGrowth_result_con.txt','w') as result:
+            result.write("%25s\t%25s\t%15s\t%10s\t%6s\t%6s\t%6s\t%6s\t%6s\t%6s\t%6s\t%6s\t%6s\t%6s\t%6s\n" \
                          %('authorA','authorB','authorC','Sup(A,B,C)','Sup(A)','Sup(B)','Sup(C)',\
-                           'Con(A)','Con(B)','Con(C)','MinCon','MaxCon'))
-            result2.write("%25s\t%25s\t%15s\t%10s\t%6s\t%6s\t%6s\t%6s\t%6s\t%6s\t%6s\t%6s\n" \
+                           'Con(A)','Con(B)','Con(C)','all_con','max_con','kulc','cosine','coherence'))
+            result2.write("%25s\t%25s\t%15s\t%10s\t%6s\t%6s\t%6s\t%6s\t%6s\t%6s\t%6s\t%6s\t%6s\t%6s\t%6s\n" \
                           %('authorA','authorB','authorC','Sup(A,B,C)','Sup(A)','Sup(B)','Sup(C)',\
-                            'Con(A)','Con(B)','Con(C)','MinCon','MaxCon'))
+                            'Con(A)','Con(B)','Con(C)','all_con','max_con','kulc','cosine','coherence'))
             resultList = sorted(myFreqList.items(), key=lambda p: p[1], reverse=True)
             for itemSet, support in resultList:
                 itemList = list(itemSet)
@@ -154,26 +165,39 @@ if __name__ == "__main__":
                 ConA = float(SupAB_C) / float(SupA)
                 ConB = float(SupAB_C) / float(SupB)
                 (C,authorC,SupC,ConC) = ('','',0.0,0.0)
-   
+
                 if len(itemList) == 3:
                     C = itemList[2]
                     authorC = authorsDic.get(int(C),'0')
                     SupC = int(myHeaderTab.get(C,[0])[0])
                     ConC = float(SupAB_C) / float(SupC)
-                    MinCon = min([ConA, ConB, ConC])
+                    #有效性分析
+                    # lift = SupAB_C/(SupA*SupB*SupC)*7131572
+                    cosine = np.sqrt(ConA*ConB*ConC)
+                    allCon = min([ConA, ConB, ConC])
                     MaxCon = max([ConA, ConB, ConC])
+                    kulc = (allCon + MaxCon) / 2
+                    coherence = SupAB_C /(SupA+SupB+SupC-SupAB_C)
 
                 elif len(itemList) == 2:
-                    MinCon = min([ConA, ConB])
-                    MaxCon = max([ConA, ConB])                
+                    # 有效性分析
+                    # lift = SupAB_C / (SupA * SupB ) * 7131572
+                    cosine = np.sqrt(ConA * ConB)
+                    allCon = min([ConA, ConB])
+                    MaxCon = max([ConA, ConB])
+                    kulc = (allCon + MaxCon) / 2
+                    coherence = SupAB_C / (SupA + SupB - SupAB_C)
 
-
-                if MinCon < 0.4 or MaxCon < 0.5 or (MinCon + MaxCon)/2 < 0.5:
+                #设置confidence阈值，进行过滤
+                if allCon < 0.4 or MaxCon < 0.5 or kulc < 0.5:
                     continue
-                result.write("%25s\t%25s\t%15s\t%10.0f\t%6.0f\t%6.0f\t%6.0f\t%6.4f\t%6.4f\t%6.4f\t%6.4f\t%6.4f\n" \
+
+                #姓名
+                result.write("%25s\t%25s\t%15s\t%10.0f\t%6.0f\t%6.0f\t%6.0f\t%6.4f\t%6.4f\t%6.4f\t%6.4f\t%6.4f\t%6.4f\t%6.4f\t%6.4f\n" \
                              %(authorA,authorB,authorC,SupAB_C,\
-                               SupA,SupB,SupC,ConA,ConB,ConC,MinCon,MaxCon))
-                result2.write("%25s\t%25s\t%15s\t%10.0f\t%6.0f\t%6.0f\t%6.0f\t\%6.4f\t%6.4f\t%6.4f\t%6.4f\t%6.4f\n"\
+                               SupA,SupB,SupC,ConA,ConB,ConC,allCon,MaxCon,kulc,cosine,coherence))
+                #encoded
+                result2.write("%25s\t%25s\t%15s\t%10.0f\t%6.0f\t%6.0f\t%6.0f\t%6.4f\t%6.4f\t%6.4f\t%6.4f\t%6.4f\t%6.4f\t%6.4f\t%6.4f\n" \
                               %(A,B,C,SupAB_C,SupA,SupB,SupC,\
-                                ConA,ConB,ConC,MinCon,MaxCon))
+                                ConA,ConB,ConC,allCon,MaxCon,kulc,cosine,coherence))
     print("Finished !")
