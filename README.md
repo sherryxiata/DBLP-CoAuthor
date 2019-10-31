@@ -1,23 +1,65 @@
-DBLP-Coauthor-Mining<br \>(从DBLP数据集中挖掘合作者)
-=============
-详细说明
--------------
-详细说明请查看 [数据挖掘实战之DBLP中合作者挖掘（Python+Hadoop)](http://www.tianjun.ml/essays/20)
+# 利用关联规则（Apriori和FPGrowth）挖掘DBLP数据集中的合作者
 
-文件说明
--------------
-### getAuthors.py
-下载DBLP数据集``dblp.xml``到该目录下，[http://dblp.uni-trier.de/xml/](http://dblp.uni-trier.de/xml/)<br />运行``getAuthors.py`` 得到``authors.txt``文件
-### encode.py
-运行该文件后将对上一步得到的``authors.txt``文件编码（安装作者姓名出现的顺序依次以正整数编码）得到编码后的文件``authors_encoded.txt``，以及作者姓名与编码对应的文件``authors_index.txt``，其对应关系为姓名所在的行号减1即为其编码ID（ID从0开始）
-### view.data.py
-读取``authors.txt``，统计不同支持度下有多少作者，同时绘制曲线，确定支持度阈值大概范围
-### final.py
-主要借鉴了《机器学习实战》中的例子，将结果写入了 ``result*.txt``文件，注意最后的结果增加了置信度过滤。
-### mapper.py & reduce.py
-第一轮MapReduce的Map和Reduce所用到的文件，其实质就是一个wordCount的过程
-### mapper2.py & reduce2.py
-第二轮MapReduce的Map和Reduce所用到的文件，注意在这里的输出并给出没有完整的挖掘结果，而是输出的条件模式集，有空的话再转化一下。（本s实验目的只是验证FP-growth在分布式下实现的可能性，所以没有给出完整的结果）
-### viewRelation.py
-添加了作者与其合作者之间的可视化功能，使用了networkx包。
+## 目标
+
+挖掘DBLP数据集中，经常一起合作的作者信息。
+
+## 数据集
+
+DBLP：计算机领域英文文献集成数据库。
+
+官网：https://dblp.uni-trier.de/db/
+
+数据下载地址：https://dblp.uni-trier.de/xml/（下载dblp.xml.gz和dblp.dtd）
+
+DBLP数据以xml标签格式存储，dblp.xml.gz是整个xml文件的压缩包，解压后2.53G，随着数据库不断更新还会越来越多；dblp.dtd是格式说明文件。解析的时候和前者放在一起。
+
+## 关联规则
+1.参考大佬的代码实现fpgrowth（全部700w条数据）；加入了all_confidence、max_confidence、kulc、cosine、coherence5个有效性评价指标。
+
+传送门：https://github.com/findmyway/DBLP-Coauthor
+
+2.基于mlxtend开源包分别实现Apriori和FPGrowth；取了前10000条数据。
+
+## 文件说明
+#### config.py
+项目的配置文件
+
+#### getAuthors.py
+解析dblp.xml，得到所有文章、书、会议等的作者列表authors.txt
+
+#### encode.py
+对authors.txt进行编码，生成authors_encoded.txt（编码后的文件）和authors_index（索引）.txt
+
+#### view_data.py
+计算每个author的support,得到每种support下的author数目，可视化，为后面support的选取做准备。
+
+#### FPGrowth.py
+用FPGrowth生成关联规则,计算规则有效性指标
+
+#### Apriori.py
+用Apriori生成关联规则，取了前10000条。
+
+#### aprioriMlxtend.py
+用mlxtend的apriori包实现关联规则挖掘。
+
+因为原始数据量太大，所以取了前10000条。
+
+#### FPGrowthMlxtend.py
+用mlxtend的FPGrowth包实现关联规则挖掘。
+
+同上，取了10000条。
+
+----
+
+mlxtend是一个类似sklearn的很简洁的Python科学计算包。
+
+文档：http://rasbt.github.io/mlxtend/user_guide/frequent_patterns/apriori/?spm=a2c4e.10696291.0.0.272f19a4FxMdDj
+
+但它在做关联规则挖掘时，要把数据组织成one-hot编码形式，还是很占空间的。
+
+
+
+
+
 

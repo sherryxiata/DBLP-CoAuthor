@@ -101,16 +101,23 @@ def mineTree(inTree, headerTable, minSup, preFix, freqItemList):
 
 def loadSimpDat(inFile):
     dataSet = {}
+    a=0
     for line in inFile:
         line =line.strip().split(',')
         dataLine = [word for word in line if word.isdigit()]
         dataSet[frozenset(dataLine)] = dataSet.get(frozenset(dataLine),0) + 1
+        a+=1
+        if a>dataLen-1:
+            break
+    print(a)
             
     return dataSet
 
 if __name__ == "__main__":
+    dataLen = 10000
+    minSup = 10 #至少共同出现过100次
+    min_con=0.5
 
-    minSup = 100 #至少共同出现过100次
     print("Reading Source File ... ")
     with open(root_path+'/authors_encoded.txt','r') as f:
         dataSet = loadSimpDat(f)
@@ -144,8 +151,8 @@ if __name__ == "__main__":
             i = i+1
 
     print("Writing result into result.txt...")
-    with open(result_path+'/FPGrowth_result2_con.txt','w') as result2:
-        with open(result_path+'/FPGrowth_result_con.txt','w') as result:
+    with open(result_path+'/FPGrowth_result_10000_10_0.5.txt','w') as result2:
+        with open(result_path+'/FPGrowth_result_index_10000_10_0.5.txt','w') as result:
             result.write("%25s\t%25s\t%15s\t%10s\t%6s\t%6s\t%6s\t%6s\t%6s\t%6s\t%6s\t%6s\t%6s\t%6s\t%6s\n" \
                          %('authorA','authorB','authorC','Sup(A,B,C)','Sup(A)','Sup(B)','Sup(C)',\
                            'Con(A)','Con(B)','Con(C)','all_con','max_con','kulc','cosine','coherence'))
@@ -188,8 +195,10 @@ if __name__ == "__main__":
                     kulc = (allCon + MaxCon) / 2
                     coherence = SupAB_C / (SupA + SupB - SupAB_C)
 
-                #设置confidence阈值，进行过滤
-                if allCon < 0.4 or MaxCon < 0.5 or kulc < 0.5:
+                # #设置confidence阈值，进行过滤
+                # if allCon < 0.4 or MaxCon < 0.5 or kulc < 0.5:
+                #     continue
+                if allCon<min_con:
                     continue
 
                 #姓名

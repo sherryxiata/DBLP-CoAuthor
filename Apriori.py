@@ -1,14 +1,6 @@
 from config import *
 import random
 
-def loadData(inFile):
-    dataSet = []
-    for line in inFile:
-        line = line.strip().split(',')
-        dataLine = [int(word) for word in line if word.isdigit()]
-        dataSet.append(dataLine)
-    return dataSet
-
 # C1 是大小为1的所有候选项集的集合
 def createC1(dataSet):
     C1 = []
@@ -117,14 +109,24 @@ if __name__ == '__main__':
         dataSet = loadData(f_lines)
 
     #700w条跑了很久很久
-    #取1000条:没有关联规则
     #取10000条
     sample=dataSet[0:10000]
 
-    tik=time.time()
+    print('start mining...')
+
     #生成频繁项集
+    print('generate frequent_itemsets...')
+    tik = time.time()
     L,supportData=apriori(sample,10)
-    #生成关联规则
-    # rules=generateRules(L,supportData,0.4)
     tok = time.time()
-    print('runtime:',tok - tik)
+    print('runtime:', tok - tik)
+
+    #生成关联规则
+    print('generate rules...')
+    rules=generateRules(L,supportData,0.5)
+
+    print('mining finished!')
+
+
+
+

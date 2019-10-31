@@ -1,8 +1,13 @@
-#count support of each author; visualize
+# -*- coding: utf-8 -*-
+# @Time    : 2019/10/31 8:53
+# @Author  : wenlei
 
-from config1 import *
+'''
+count support of each author; visualize
+'''
+
+from config import *
 import matplotlib.pyplot as plt
-import numpy as np
 
 data = codecs.open(root_path+'/authors_encoded.txt','r','utf-8')
 word_counts = {}  # key->author_index  value=>count_each
@@ -26,7 +31,7 @@ for k,v in word_counts.items():
     bins[v] = bins.get(v,0) + 1
 
 y = []
-for i in range(40, 200):
+for i in range(40,200):
     y.append(bins.get(i,0))
 
 plt.plot(y,'-');
